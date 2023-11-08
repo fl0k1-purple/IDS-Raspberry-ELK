@@ -212,3 +212,33 @@ For the purpose of this project we are running Snort as a background process and
 snort -d -c /etc/snort/snort.conf -l /snort-logs -D -i eth0
 ```
 In the ```snort.conf``` you will need to uncomment and/or add your desired policies for alerting upon activation
+
+## Bridge Mode
+
+For the whole functionality of this system, the device must be in Bridge mode between the devices you would want to analyze. For this the following script will help set up this mode at boot time:
+
+```bash
+#!/usr/bin/env bash
+
+echo "$0: setting eth0-eth1 bridge"
+
+## shutdown everything first
+ifconfig eth0 down
+ifconfig eth1 down
+
+## set interfaces to promiscuous mode
+ifconfig eth0 0.0.0.0 promisc up
+ifconfig eth1 0.0.0.0 promisc up
+
+## add both interfaces to the virtual bridge network
+brctl addbr br0
+brctl addif br0 eth0
+brctl addif br0 eth1
+
+## optional: configure an ip to the bridge to allow remote access
+ifconfig br0 192.168.1.111 netmask 255.255.255.0 up
+route add default gw 192.168.1.1 dev br0
+
+echo "$0: done bridge"
+```
+
